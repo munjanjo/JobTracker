@@ -7,4 +7,9 @@ public class JobApplication
     public required string Position { get; set; }
     public string? Url { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
+
+    public ApplicationStatus Status { get; set; }
+
+    public List<StatusChange> StatusChanges { get; set; } = new();
+
 }

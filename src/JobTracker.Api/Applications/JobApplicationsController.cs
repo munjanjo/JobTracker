@@ -46,7 +46,8 @@ public class JobApplicationsController(AppDbContext db) : ControllerBase
         db.JobApplications.Add(entity);
         await db.SaveChangesAsync(ct);
 
-        var response = new JobApplicationResponse(entity.Id, entity.Company, entity.Position, entity.Url, entity.CreatedAt);
+        var response = new JobApplicationResponse(
+            entity.Id, entity.Company, entity.Position, entity.Url, entity.CreatedAt);
 
         return CreatedAtAction(nameof(GetById), new { id = entity.Id }, response);
     }
