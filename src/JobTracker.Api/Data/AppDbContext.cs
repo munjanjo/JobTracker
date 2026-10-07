@@ -19,6 +19,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         .HasConversion<string>()
         .HasMaxLength(32);
 
+        modelBuilder.Entity<JobApplication>()
+       .HasOne<AppUser>()
+       .WithMany()
+       .HasForeignKey(a => a.UserId)
+       .IsRequired();
+
         modelBuilder.Entity<StatusChange>(e =>
         {
             e.Property(s => s.FromStatus).HasConversion<string>().HasMaxLength(32);

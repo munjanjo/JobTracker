@@ -25,3 +25,13 @@ GET {{baseUrl}}/api/applications
 ### 4. Prijave S tokenom (očekujem 200)
 GET {{baseUrl}}/api/applications
 Authorization: Bearer {{login.response.body.accessToken}}
+### 5. Kreiranje prijave S tokenom (očekujem 200)
+POST {{baseUrl}}/api/applications
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "company": "abysalto",
+  "position": "junior",
+  "url": "string"
+}

@@ -16,6 +16,7 @@ public class JobApplicationsController(AppDbContext db) : ControllerBase
     {
         var items = await db.JobApplications
             .AsNoTracking()
+            .Where(a => a.UserId == User.GetUserId())
             .OrderByDescending(a => a.CreatedAt)
             .Select(JobApplicationMappings.ToResponseExpression)
             .ToListAsync(ct);
@@ -28,7 +29,7 @@ public class JobApplicationsController(AppDbContext db) : ControllerBase
     {
         var item = await db.JobApplications
             .AsNoTracking()
-            .Where(a => a.Id == id)
+            .Where(a => a.Id == id && a.UserId == User.GetUserId())
             .Select(JobApplicationMappings.ToResponseExpression)
             .FirstOrDefaultAsync(ct);
 
@@ -43,6 +44,7 @@ public class JobApplicationsController(AppDbContext db) : ControllerBase
             Company = request.Company,
             Position = request.Position,
             Url = request.Url,
+            UserId = User.GetUserId(),
             CreatedAt = DateTimeOffset.UtcNow
         };
         entity.StatusChanges.Add(new StatusChange
@@ -61,7 +63,7 @@ public class JobApplicationsController(AppDbContext db) : ControllerBase
     [HttpPatch("{id:int}/status")]
     public async Task<IActionResult> ChangeStatus(int id, ChangeStatusRequest request, CancellationToken ct)
     {
-        var application = await db.JobApplications.FirstOrDefaultAsync(a => a.Id == id, ct);
+        var application = await db.JobApplications.FirstOrDefaultAsync(a => a.Id == id && a.UserId == User.GetUserId(), ct);
         if (application is null)
         {
             return NotFound();
@@ -86,7 +88,7 @@ public class JobApplicationsController(AppDbContext db) : ControllerBase
     {
         var application = await db.JobApplications
         .AsNoTracking()
-        .Where(a => a.Id == id)
+        .Where(a => a.Id == id && a.UserId == User.GetUserId())
         .Select(a => new
         {
             a.Id,
