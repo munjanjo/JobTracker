@@ -1,11 +1,14 @@
 using JobTracker.Api.Data;
+using JobTracker.Api.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace JobTracker.Api.Applications;
 
 [ApiController]
 [Route("api/applications")]
+[Authorize]
 public class JobApplicationsController(AppDbContext db) : ControllerBase
 {
     [HttpGet]

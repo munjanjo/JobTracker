@@ -1,6 +1,27 @@
-@JobTracker.Api_HostAddress = http://localhost:5056
+@baseUrl = http://localhost:5056
 
-GET {{JobTracker.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### 1. Registracija
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
 
-###
+{
+  "email": "ivo@test.com",
+  "password": "Lozinka123!"
+}
+
+### 2. Login
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "ivo@test.com",
+  "password": "Lozinka123!"
+}
+
+### 3. Prijave BEZ tokena (očekujem 401)
+GET {{baseUrl}}/api/applications
+
+### 4. Prijave S tokenom (očekujem 200)
+GET {{baseUrl}}/api/applications
+Authorization: Bearer {{login.response.body.accessToken}}
