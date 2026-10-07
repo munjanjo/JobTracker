@@ -14,7 +14,7 @@ public class JobApplicationsController(AppDbContext db) : ControllerBase
         var items = await db.JobApplications
             .AsNoTracking()
             .OrderByDescending(a => a.CreatedAt)
-            .Select(a => new JobApplicationResponse(a.Id, a.Company, a.Position, a.Url, a.Status, a.CreatedAt))
+            .Select(JobApplicationMappings.ToResponseExpression)
             .ToListAsync(ct);
 
         return Ok(items);
@@ -26,7 +26,7 @@ public class JobApplicationsController(AppDbContext db) : ControllerBase
         var item = await db.JobApplications
             .AsNoTracking()
             .Where(a => a.Id == id)
-            .Select(a => new JobApplicationResponse(a.Id, a.Company, a.Position, a.Url, a.Status, a.CreatedAt))
+            .Select(JobApplicationMappings.ToResponseExpression)
             .FirstOrDefaultAsync(ct);
 
         return item is null ? NotFound() : Ok(item);
@@ -51,8 +51,7 @@ public class JobApplicationsController(AppDbContext db) : ControllerBase
         db.JobApplications.Add(entity);
         await db.SaveChangesAsync(ct);
 
-        var response = new JobApplicationResponse(
-            entity.Id, entity.Company, entity.Position, entity.Url, entity.Status, entity.CreatedAt);
+        var response = entity.ToResponse();
 
         return CreatedAtAction(nameof(GetById), new { id = entity.Id }, response);
     }
