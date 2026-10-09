@@ -2,6 +2,8 @@ using System.Text.Json.Serialization;
 using JobTracker.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using JobTracker.Api.Auth;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,5 +43,10 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapGroup("/api/auth")
     .MapIdentityApi<AppUser>();
+app.MapPost("/api/auth/logout", async (SignInManager<AppUser> signInManager, [FromBody] object empty) =>
+{
+    await signInManager.SignOutAsync();
+    return Results.Ok();
+}).RequireAuthorization();
 
 app.Run();

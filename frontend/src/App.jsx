@@ -1,17 +1,22 @@
-import { useEffect, useState } from "react";
-import { api } from "./api/client";
+import { Routes, Route } from "react-router";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import HomePage from "./pages/HomePage";
+import RequireAuth from "./auth/RequireAuth";
 
 export default function App() {
-  const [result, setResult] = useState("Učitavam...");
-
-  useEffect(() => {
-    api
-      .get("/applications")
-      .then((res) => setResult(`OK: ${res.data.length} prijava`))
-      .catch((err) =>
-        setResult(`Greška: ${err.response?.status ?? err.message}`),
-      );
-  }, []);
-
-  return <p>{result}</p>;
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route
+        path="/"
+        element={
+          <RequireAuth>
+            <HomePage />
+          </RequireAuth>
+        }
+      />
+    </Routes>
+  );
 }
