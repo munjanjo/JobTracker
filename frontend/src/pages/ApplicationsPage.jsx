@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { applicationsApi } from "../api/applications";
 import { getErrorMessages } from "../api/errors";
 import { STATUSES, STATUS_DOTS, STATUS_LABELS } from "../constants/status";
 import NewApplicationForm from "../components/NewApplicationForm";
-import { ErrorList, Spinner, StatusBadge } from "../components/ui";
+import { Button, ErrorList, Spinner, StatusBadge } from "../components/ui";
+import HistoryPanel from "../components/HistoryPanel";
 
 const dateFormat = new Intl.DateTimeFormat("hr-HR", {
   day: "numeric",
@@ -15,6 +16,16 @@ export default function ApplicationsPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [selectedId, setSelectedId] = useState(null);
+
+  const selected = items.find((a) => a.id === selectedId) ?? null;
+  const closePanel = useCallback(() => setSelectedId(null), []);
+
+  function handleStatusChanged(id, status) {
+    setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
+  }
 
   useEffect(() => {
     applicationsApi
@@ -34,6 +45,24 @@ export default function ApplicationsPage() {
     for (const a of items) result[a.status] += 1;
     return result;
   }, [items]);
+
+  // Filtriranje na klijentu: podaci su već učitani, pa ne treba novi zahtjev prema API-ju
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return items.filter((a) => {
+      const matchesStatus = statusFilter === "All" || a.status === statusFilter;
+      const matchesSearch =
+        q === "" ||
+        a.company.toLowerCase().includes(q) ||
+        a.position.toLowerCase().includes(q);
+      return matchesStatus && matchesSearch;
+    });
+  }, [items, search, statusFilter]);
+
+  function resetFilters() {
+    setSearch("");
+    setStatusFilter("All");
+  }
 
   if (loading) return <Spinner label="Učitavam prijave..." />;
   if (error) return <ErrorList errors={[error]} />;
@@ -59,26 +88,59 @@ export default function ApplicationsPage() {
       <NewApplicationForm onCreated={handleCreated} />
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-          <h2 className="text-base font-semibold">Sve prijave</h2>
-          <div className="hidden flex-wrap gap-3 md:flex">
-            {STATUSES.filter((s) => counts[s] > 0).map((s) => (
-              <span key={s} className="flex items-center gap-1.5 text-xs text-slate-500">
-                <span className={`h-2 w-2 rounded-full ${STATUS_DOTS[s]}`} />
-                {STATUS_LABELS[s]} {counts[s]}
+        <div className="space-y-4 border-b border-slate-200 px-6 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-base font-semibold">
+              Sve prijave{" "}
+              <span className="font-normal text-slate-400">
+                ({filtered.length}
+                {filtered.length !== items.length && ` od ${items.length}`})
               </span>
+            </h2>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Traži firmu ili poziciju..."
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:w-64"
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <FilterChip
+              active={statusFilter === "All"}
+              onClick={() => setStatusFilter("All")}
+              label="Sve"
+              count={items.length}
+            />
+            {STATUSES.filter((s) => counts[s] > 0).map((s) => (
+              <FilterChip
+                key={s}
+                active={statusFilter === s}
+                onClick={() => setStatusFilter(s)}
+                label={STATUS_LABELS[s]}
+                count={counts[s]}
+                dot={STATUS_DOTS[s]}
+              />
             ))}
           </div>
         </div>
 
         {items.length === 0 ? (
           <EmptyState />
+        ) : filtered.length === 0 ? (
+          <div className="px-6 py-12 text-center">
+            <p className="text-sm text-slate-500">Nijedna prijava ne odgovara filterima.</p>
+            <Button variant="ghost" onClick={resetFilters} className="mt-2">
+              Očisti filtere
+            </Button>
+          </div>
         ) : (
           <ul className="divide-y divide-slate-100">
-            {items.map((a) => (
+            {filtered.map((a) => (
               <li
                 key={a.id}
-                className="flex items-center gap-4 px-6 py-4 transition hover:bg-slate-50"
+                onClick={() => setSelectedId(a.id)}
+                className="flex cursor-pointer items-center gap-4 px-6 py-4 transition hover:bg-slate-50"
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-sm font-semibold text-slate-600">
                   {a.company[0]?.toUpperCase()}
@@ -94,6 +156,7 @@ export default function ApplicationsPage() {
                       href={a.url}
                       target="_blank"
                       rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
                       className="block text-xs font-medium text-indigo-600 hover:text-indigo-500"
                     >
                       Oglas ↗
@@ -106,7 +169,31 @@ export default function ApplicationsPage() {
           </ul>
         )}
       </section>
+
+      <HistoryPanel
+        application={selected}
+        onClose={closePanel}
+        onStatusChanged={handleStatusChanged}
+      />
     </div>
+  );
+}
+
+function FilterChip({ active, onClick, label, count, dot }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset transition ${
+        active
+          ? "bg-indigo-600 text-white ring-indigo-600"
+          : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50"
+      }`}
+    >
+      {dot && <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-white" : dot}`} />}
+      {label}
+      <span className={active ? "text-indigo-200" : "text-slate-400"}>{count}</span>
+    </button>
   );
 }
 
