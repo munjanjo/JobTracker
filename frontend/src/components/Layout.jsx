@@ -26,6 +26,9 @@ export default function Layout() {
               <NavLink to="/" end className={navClass}>
                 Prijave
               </NavLink>
+              <NavLink to="/board" className={navClass}>
+                Kanban
+              </NavLink>
             </nav>
           </div>
           <div className="flex items-center gap-3">
