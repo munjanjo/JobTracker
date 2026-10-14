@@ -50,3 +50,4 @@ app.MapPost("/api/auth/logout", async (SignInManager<AppUser> signInManager, [Fr
 }).RequireAuthorization();
 
 app.Run();
+public partial class Program { }
