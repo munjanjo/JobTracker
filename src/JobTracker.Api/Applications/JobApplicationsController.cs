@@ -3,6 +3,8 @@ using JobTracker.Api.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Reflection.Metadata;
+using System.Data.Common;
 
 namespace JobTracker.Api.Applications;
 
@@ -101,5 +103,20 @@ public class JobApplicationsController(AppDbContext db) : ControllerBase
         .FirstOrDefaultAsync(ct);
         return application is null ? NotFound() : Ok(application.StatusChanges);
     }
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteApplication(int id, CancellationToken ct)
+    {
+
+        var application = await db.JobApplications.Where(a => a.Id == id && a.UserId == User.GetUserId())
+        .FirstOrDefaultAsync(ct);
+        if (application is null)
+            return NotFound();
+        db.JobApplications.Remove(application);
+        await db.SaveChangesAsync(ct);
+        return NoContent();
+
+
+    }
+
 
 }

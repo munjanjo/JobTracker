@@ -1,0 +1,9 @@
+{
+  "dotnet.defaultSolution": "JobTracker.slnx",
+  "editor.suggestOnTriggerCharacters": true,
+  "editor.quickSuggestions": {
+    "other": "on",
+    "comments": "off",
+    "strings": "off"
+  }
+}
