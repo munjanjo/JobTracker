@@ -14,7 +14,12 @@ const dateTimeFormat = new Intl.DateTimeFormat("hr-HR", {
 
 // Bočni panel (drawer): povijest statusa jedne prijave + promjena statusa s bilješkom.
 // application === null → panel je zatvoren.
-export default function HistoryPanel({ application, onClose, onStatusChanged }) {
+export default function HistoryPanel({
+  application,
+  onClose,
+  onStatusChanged,
+  onDelete,
+}) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -65,7 +70,16 @@ export default function HistoryPanel({ application, onClose, onStatusChanged }) 
   }, [id, onClose]);
 
   if (!application) return null;
-
+  async function handleDelete() {
+    if (!window.confirm("Obrisati ovu prijavu?")) return;
+    try {
+      await applicationsApi.delete(id);
+      onDelete?.(id);
+      onClose();
+    } catch (err) {
+      setSaveErrors(getErrorMessages(err));
+    }
+  }
   async function handleSubmit(e) {
     e.preventDefault();
     if (!newStatus) return;
@@ -87,13 +101,20 @@ export default function HistoryPanel({ application, onClose, onStatusChanged }) 
   return (
     <div className="fixed inset-0 z-40 flex justify-end">
       {/* Zatamnjena pozadina, klik zatvara panel */}
-      <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-[1px]" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-slate-900/30 backdrop-blur-[1px]"
+        onClick={onClose}
+      />
 
       <aside className="relative flex h-full w-full max-w-md flex-col bg-white shadow-2xl">
         <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
           <div className="min-w-0">
-            <p className="truncate text-lg font-semibold">{application.company}</p>
-            <p className="truncate text-sm text-slate-500">{application.position}</p>
+            <p className="truncate text-lg font-semibold">
+              {application.company}
+            </p>
+            <p className="truncate text-sm text-slate-500">
+              {application.position}
+            </p>
             <div className="mt-3">
               <StatusBadge status={application.status} />
             </div>
@@ -108,8 +129,13 @@ export default function HistoryPanel({ application, onClose, onStatusChanged }) 
         </header>
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          <form onSubmit={handleSubmit} className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm font-semibold text-slate-700">Promijeni status</p>
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4"
+          >
+            <p className="text-sm font-semibold text-slate-700">
+              Promijeni status
+            </p>
             <select
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value)}
@@ -130,12 +156,25 @@ export default function HistoryPanel({ application, onClose, onStatusChanged }) 
               className="block w-full resize-none rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
             <ErrorList errors={saveErrors} />
-            <Button type="submit" disabled={!newStatus || saving} className="w-full">
+            <Button
+              type="submit"
+              disabled={!newStatus || saving}
+              className="w-full"
+            >
               {saving ? "Spremam..." : "Spremi promjenu"}
             </Button>
           </form>
+          <Button
+            variant="ghost"
+            onClick={handleDelete}
+            className="mt-3 w-full text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+          >
+            Obriši prijavu
+          </Button>
 
-          <h3 className="mb-4 mt-8 text-sm font-semibold text-slate-700">Povijest statusa</h3>
+          <h3 className="mb-4 mt-8 text-sm font-semibold text-slate-700">
+            Povijest statusa
+          </h3>
 
           {loading && <Spinner label="Učitavam povijest..." />}
           {error && <ErrorList errors={[error]} />}
@@ -150,13 +189,18 @@ export default function HistoryPanel({ application, onClose, onStatusChanged }) 
                   <div className="flex flex-wrap items-center gap-2 text-sm">
                     {h.fromStatus ? (
                       <>
-                        <span className="text-slate-500">{STATUS_LABELS[h.fromStatus]}</span>
+                        <span className="text-slate-500">
+                          {STATUS_LABELS[h.fromStatus]}
+                        </span>
+
                         <span className="text-slate-400">→</span>
                       </>
                     ) : (
                       <span className="text-slate-500">Kreirano kao</span>
                     )}
-                    <span className="font-medium">{STATUS_LABELS[h.toStatus]}</span>
+                    <span className="font-medium">
+                      {STATUS_LABELS[h.toStatus]}
+                    </span>
                   </div>
                   <p className="mt-0.5 text-xs text-slate-400">
                     {dateTimeFormat.format(new Date(h.changedAt))}

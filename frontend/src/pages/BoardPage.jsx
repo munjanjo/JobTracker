@@ -27,6 +27,10 @@ export default function BoardPage() {
     setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
   }
 
+  function handleDeleted(id) {
+    setItems((prev) => prev.filter((a) => a.id !== id));
+  }
+
   useEffect(() => {
     applicationsApi
       .getAll()
@@ -194,6 +198,7 @@ export default function BoardPage() {
         application={selected}
         onClose={closePanel}
         onStatusChanged={handleStatusChanged}
+        onDelete={handleDeleted}
       />
     </div>
   );

@@ -7,4 +7,5 @@ export const applicationsApi = {
     api.patch(`/applications/${id}/status`, { status, notes }),
   getHistory: (id) =>
     api.get(`/applications/${id}/history`).then((res) => res.data),
+  delete: (id) => api.delete(`/applications/${id}`),
 };

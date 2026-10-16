@@ -26,7 +26,9 @@ export default function ApplicationsPage() {
   function handleStatusChanged(id, status) {
     setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
   }
-
+  function handleDeleted(id) {
+    setItems((prev) => prev.filter((a) => a.id !== id));
+  }
   useEffect(() => {
     applicationsApi
       .getAll()
@@ -81,7 +83,10 @@ export default function ApplicationsPage() {
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard label="Ukupno" value={items.length} />
         <StatCard label="Aktivne" value={active} />
-        <StatCard label="Intervjui" value={counts.Screening + counts.TechnicalInterview} />
+        <StatCard
+          label="Intervjui"
+          value={counts.Screening + counts.TechnicalInterview}
+        />
         <StatCard label="Ponude" value={counts.Offer} accent />
       </div>
 
@@ -129,7 +134,9 @@ export default function ApplicationsPage() {
           <EmptyState />
         ) : filtered.length === 0 ? (
           <div className="px-6 py-12 text-center">
-            <p className="text-sm text-slate-500">Nijedna prijava ne odgovara filterima.</p>
+            <p className="text-sm text-slate-500">
+              Nijedna prijava ne odgovara filterima.
+            </p>
             <Button variant="ghost" onClick={resetFilters} className="mt-2">
               Očisti filtere
             </Button>
@@ -147,7 +154,9 @@ export default function ApplicationsPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{a.company}</p>
-                  <p className="truncate text-sm text-slate-500">{a.position}</p>
+                  <p className="truncate text-sm text-slate-500">
+                    {a.position}
+                  </p>
                 </div>
                 <div className="hidden text-right text-sm text-slate-500 sm:block">
                   {dateFormat.format(new Date(a.createdAt))}
@@ -174,6 +183,7 @@ export default function ApplicationsPage() {
         application={selected}
         onClose={closePanel}
         onStatusChanged={handleStatusChanged}
+        onDelete={handleDeleted}
       />
     </div>
   );
@@ -190,9 +200,15 @@ function FilterChip({ active, onClick, label, count, dot }) {
           : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50"
       }`}
     >
-      {dot && <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-white" : dot}`} />}
+      {dot && (
+        <span
+          className={`h-1.5 w-1.5 rounded-full ${active ? "bg-white" : dot}`}
+        />
+      )}
       {label}
-      <span className={active ? "text-indigo-200" : "text-slate-400"}>{count}</span>
+      <span className={active ? "text-indigo-200" : "text-slate-400"}>
+        {count}
+      </span>
     </button>
   );
 }
@@ -201,11 +217,19 @@ function StatCard({ label, value, accent = false }) {
   return (
     <div
       className={`rounded-2xl border p-5 shadow-sm ${
-        accent ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-white"
+        accent
+          ? "border-emerald-200 bg-emerald-50"
+          : "border-slate-200 bg-white"
       }`}
     >
-      <p className={`text-sm ${accent ? "text-emerald-700" : "text-slate-500"}`}>{label}</p>
-      <p className={`mt-1 text-3xl font-semibold tracking-tight ${accent ? "text-emerald-700" : ""}`}>
+      <p
+        className={`text-sm ${accent ? "text-emerald-700" : "text-slate-500"}`}
+      >
+        {label}
+      </p>
+      <p
+        className={`mt-1 text-3xl font-semibold tracking-tight ${accent ? "text-emerald-700" : ""}`}
+      >
         {value}
       </p>
     </div>
