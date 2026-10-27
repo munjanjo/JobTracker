@@ -1,5 +1,7 @@
 # Job Tracker
 
+![CI](https://github.com/munjanjo/JobTracker/actions/workflows/ci.yml/badge.svg)
+
 Web app for tracking job applications. Add the jobs you applied to, move them between stages on a kanban board and keep a history of every status change.
 
 ## Features
@@ -48,6 +50,12 @@ npm run dev
 Migrations are applied on startup in Development. Swagger UI is at `/swagger`.
 
 To run the API in Docker as well: `docker compose up -d --build` (API on http://localhost:8080).
+
+## Tests
+
+```bash
+dotnet test   # requires Docker (integration tests use Testcontainers)
+```
 
 ## API
 
