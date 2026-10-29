@@ -3,6 +3,7 @@
 ![CI](https://github.com/munjanjo/JobTracker/actions/workflows/ci.yml/badge.svg)
 
 Web app for tracking job applications. Add the jobs you applied to, move them between stages on a kanban board and keep a history of every status change.
+![Main screen](docs/screen.png)
 
 ## Features
 
@@ -11,13 +12,15 @@ Web app for tracking job applications. Add the jobs you applied to, move them be
 - Kanban board with drag and drop between stages: Saved, Applied, Screening, Technical interview, Offer, Rejected, Withdrawn
 - Status history with timestamps and optional notes for every change
 - Filter applications by status and search by company or position
+- Delete applications (status history is removed with them)
 
 ## Stack
 
 - ASP.NET Core Web API (.NET 10), ASP.NET Core Identity
 - PostgreSQL, Entity Framework Core
 - React, Vite, Tailwind CSS
-- Docker Compose
+- xUnit, WebApplicationFactory, Testcontainers
+- Docker Compose, GitHub Actions
 
 ## Project structure
 
@@ -41,7 +44,7 @@ cd src/JobTracker.Api
 dotnet user-secrets set "ConnectionStrings:Default" "Host=localhost;Port=5433;Database=jobtracker;Username=jobtracker;Password=change_me"
 dotnet run
 
-# frontend (http://localhost:5173)
+# frontend (http://localhost:5173), in a second terminal from the repo root
 cd frontend
 npm install
 npm run dev
@@ -57,6 +60,8 @@ To run the API in Docker as well: `docker compose up -d --build` (API on http://
 dotnet test   # requires Docker (integration tests use Testcontainers)
 ```
 
+Unit tests cover the user id extraction from claims. Integration tests run the whole API against a real PostgreSQL container and cover authentication (401), per-user ownership (another user's application returns 404), request validation (400) and status changes with history. CI runs the tests and the frontend build on every push.
+
 ## API
 
 ```
@@ -67,5 +72,6 @@ GET    /api/applications
 POST   /api/applications
 GET    /api/applications/{id}
 PATCH  /api/applications/{id}/status
+DELETE /api/applications/{id}
 GET    /api/applications/{id}/history
 ```
